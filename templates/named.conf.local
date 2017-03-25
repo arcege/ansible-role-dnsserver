@@ -1,0 +1,54 @@
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+include "/etc/bind/rndc.key";
+
+{% for domain in domains %}
+{# if domain.master == inventory_hostname #}
+{% if true %}
+zone "{{ domain.name }}" {
+    type master;
+    forwarders {};
+    file "{{ zonedir }}/db.{{domain.name}}";
+    allow-update { key rndc-key; };
+    allow-transfer {
+{% for ns in domain.nameservers %}
+{% if ns != inventory_hostname %}
+{#      {{ lookup('dig', ns) }};  #}
+{% endif %}
+{% endfor %}
+    };
+};
+zone "{{ domain.network | ipaddr('revdns') | replace('0.', '') }}" {
+    type master;
+    forwarders {};
+    file "{{ zonedir }}/db.{{ domain.network | ipaddr('network') }}";
+    allow-update { key rndc-key; };
+    allow-transfer {
+{% for ns in domain.nameservers %}
+{% if ns != inventory_hostname %}
+{#      {{ lookup('dig', ns) }};  #}
+{% endif %}
+{% endfor %}
+    };
+};
+{% else %}
+zone "{{domain.name}}" {
+    type slave;
+    forwarders {};
+    allow-transfer { none; };
+    masters { {{ lookup('dig', domain.master) }}; };
+};
+zone "{{ domain.network | ipaddr('revdns') | replace('0.', '') }}" {
+    type slave;
+    forwarders {};
+    allow-transfer { none; };
+    masters { {{ lookup('dig', domain.master) }}; };
+};
+{% endif %}
+{% endfor %}

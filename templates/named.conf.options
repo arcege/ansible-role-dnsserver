@@ -1,0 +1,23 @@
+acl internals {
+    localhost;
+    localnets;
+};
+
+options {
+    directory "/var/cache/bind";
+
+    forwarders {
+    {% for i in forwarders %}
+        {{i}};
+    {% endfor %}
+    };
+    max-ncache-ttl 300;
+
+    // If BIND logs error messages about the root key being expired,
+    // you will need to update your keys.  See https://www.isc.org/bind-keys
+    dnssec-validation auto;
+
+    auth-nxdomain no;    # conform to RFC1035
+    listen-on-v6 { any; };
+};
+

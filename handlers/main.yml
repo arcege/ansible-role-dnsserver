@@ -1,0 +1,11 @@
+---
+# handlers file for dnsserver
+
+- name: reload bind
+  service: name={{dnssvc}} state=reloaded
+  become: yes
+
+- name: start bind
+  service: name={{dnssvc}} state=restarted
+  become: yes
+

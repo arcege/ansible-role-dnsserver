@@ -1,0 +1,11 @@
+---
+# defaults file for dnsserver
+
+dnsdir: /etc/bind
+zonedir: /etc/bind
+dnssvc: bind9
+forwarders:
+  - 8.8.8.8
+  - 8.8.4.4
+
+domains: []

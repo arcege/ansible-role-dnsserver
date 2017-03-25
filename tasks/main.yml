@@ -1,0 +1,36 @@
+---
+# tasks file for dnsserver
+
+- block:
+    - name: install bind9
+      apt:
+        state: present
+        name: "{{dnssvc}}"
+        update_cache: yes
+      notify: start bind
+
+    - name: ensure zone directory exists
+      file: state=directory name={{zonedir}}
+
+    - name: copy options
+      template: src={{item}} dest={{dnsdir}}/{{item}}
+      with_items:
+        - named.conf.options
+        - named.conf.local
+      notify: reload bind
+
+    - name: generate zone A files
+      template: src=zone.a.j2 dest={{zonedir}}/db.{{item.name}}
+      with_items: domains
+      notify: reload bind
+
+    - name: generate zone PTR files
+      template: src=zone.ptr.j2 dest={{zonedir}}/db.{{item.network | ipaddr('network')}}
+      with_items: domains
+      notify: reload bind
+
+  become: yes
+  tags:
+    bind
+    dns
+
